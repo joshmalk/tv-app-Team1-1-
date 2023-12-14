@@ -3,6 +3,7 @@ import { LitElement, html, css } from 'lit';
 import '@shoelace-style/shoelace/dist/components/dialog/dialog.js';
 import '@shoelace-style/shoelace/dist/components/button/button.js';
 import "./tv-channel.js";
+import "@lrnwebcomponents/video-player/video-player.js";
 
 export class TvApp extends LitElement {
   // defaults
@@ -11,10 +12,20 @@ export class TvApp extends LitElement {
     this.name = '';
     this.source = new URL('../assets/channels.json', import.meta.url).href;
     this.listings = [];
+    this.defaultVideo = 'https://www.youtube.com/watch?v=9MT-BNuUCpM';
     this.activeItem = {
       title: null,
       id: null,
       description: null,
+      presenter: null,
+      timecode: null,
+    };
+    this.nextItem = {
+      title: null,
+      id: null,
+      description: null,
+      presenter: null,
+      timecode: null,
     };
   }
   // convention I enjoy using to define the tag's name
@@ -27,7 +38,8 @@ export class TvApp extends LitElement {
       name: { type: String },
       source: { type: String },
       listings: { type: Array },
-      activeItem: { type: Object }
+      activeItem: { type: Object },
+      nextItem: { type: Object }
     };
   }
   // LitElement convention for applying styles JUST to our element
@@ -49,131 +61,150 @@ export class TvApp extends LitElement {
         flex-wrap: nowrap;
         overflow-x: auto;
         overflow-y: auto;
-        padding-left: .5rem;
-        padding-right: .5rem;
+        padding-left: 4px;
+        padding-right: 4px;
         text-rendering: optimizeLegibility;
         width: 100%;
         margin: 0 auto;
         position: relative;
         animation-delay: 1s;
         animation-duration: 1s;
-        line-height: 1.5;
+        line-height: 1;
         font-size: 1em;
-      }
-      h5 {
-        font-weight: 400;
-      }
-      .discord {
-        display: inline-flex;
+        cursor: pointer;
       }
       .middle-page{
         display: inline-flex;
       }
-
       .main-content {
           display: flex;
           flex-direction: row;
-          margin: 12px;
-        }
-
-        .watch-button {
-          background-color: #f14668;
-          border-color: transparent;
-          color: #fff;
-        }
- 
-        .player-container {
+          margin: 8px;
+      }
+      .player-container {
           border-radius: 8px;
-          padding: 12px;
+          padding: 8px;
           display: flex;
           width: 66%;
-        }
- 
-        .player {
-          width: 100%;
-          aspect-ratio: 16/9;
-          border-radius: 8px;
-        }
- 
-        .discord {
-          width: 33%;
-          padding: 12px;
-        }
- 
-        .discord widgetbot {
-          overflow: hidden;
-          background-color: rgb(54, 57, 62);
-          border-radius: 8px;
-          vertical-align: top;
-        }
-        .discord iframe {
+          height: auto;
+          
+      }
+      .player {
+        width: 100%;
+        aspect-ratio: 16/9;
         border-radius: 8px;
+        height: auto;
+        
+      }
+      .discord {
+        width: 33%;
+        padding: 8px;
+        display: inline-flex;
+      }
+      .discord widgetbot {
+        display: inline-block;
+        overflow: hidden;
+        border-radius: 8px;
+        vertical-align: top;
+        width: 100%;
+        height: 100%;
+      }
+      .discord iframe {
         border: none;
         width: 100%;
         height: 100%;
       }
-      .
+      .description {
+        border-radius: 8px;
+        padding: 8px;
+        display: flex;
+        width: 100%;
+        margin: 4px;
+      }
+      .dialog {
+        border-radius: 8px;
+        padding: 8px;
+        display: flex;
+
+      }
+      
+    @media screen and (max-width: 768px) {
+      .main-content {
+      flex-direction: column; 
+      }
+      .player-container, .description, .discord {
+        width: 100%; 
+        height: 100%;
+      }
+    }
       `,
     ];
   }
   // LitElement rendering template of your element
   render() {
     return html`
-       <h2>${this.name}</h2>
+       <h1>${this.name}</h1>
       <div class="listing-container">
       ${this.listings.map(
       (item) => html`
-            <tv-channel 
+            <tv-channel
               title="${item.title}"
               presenter="${item.metadata.author}"
               description="${item.description}"
               @click="${this.itemClick}"
               video="${item.metadata.source}"
+              timecode="${item.metadata.timecode}"
             >
             </tv-channel>
           `
     )
       }
       </div>
-      <div class="main-content">
-      <div class="player-container">
-        <!-- video -->
-        <iframe class="player"
-          src="${this.createSource()}"
-          frameborder="0"
-          allowfullscreen>
-        </iframe>
-        
-       
-       
-      </div>
-      <!-- discord / chat - optional -->
-      <div class="discord">
-          <widgetbot server="954008116800938044" channel="1106691466274803723" width="100%" height="100%"><iframe title="WidgetBot Discord chat embed" allow="clipboard-write; fullscreen" src="https://e.widgetbot.io/channels/954008116800938044/1106691466274803723?api=a45a80a7-e7cf-4a79-8414-49ca31324752"></iframe></widgetbot>
-          <script src="https://cdn.jsdelivr.net/npm/@widgetbot/html-embed"></script>
-        </div>
-      </div>
-      <div>
-        <tv-channel title=${this.activeItem.title} presenter=${this.activeItem.author}>
-    <p id="description">
-    ${this.activeItem.description}
-    </p>
-  </tv-channel>
+    <div class="main-content">
+    <div class="player-container">
+    <!-- video -->
+      <video-player 
+          class="player"
+          source="${this.createSource()}" 
+          accent-color="orange" 
+          dark track="https://haxtheweb.org/files/HAXshort.vtt">
+      </video-player>
     </div>
-      <sl-dialog label="${this.activeItem.title}" class="dialog">
-      <p>
-      ${this.activeItem.description}
-    </p>
-        <sl-button slot="footer" variant="primary" @click="${this.closeDialog}">Close</sl-button>
-        <button class="watch-button" slot="footer">WATCH</button>
-      </sl-dialog>
+    
+    <!-- discord  -->
+    <div class="discord">
+        <widgetbot server="954008116800938044" channel="1106691466274803723" width="100%" height="100%"><iframe title="WidgetBot Discord chat embed" allow="clipboard-write; fullscreen" src="https://e.widgetbot.io/channels/954008116800938044/1106691466274803723?api=a45a80a7-e7cf-4a79-8414-49ca31324752"></iframe></widgetbot>
+        <script src="https://cdn.jsdelivr.net/npm/@widgetbot/html-embed"></script>
+      </div>
+    </div>
+    
+  <!-- description -->
+  <div>
+    <tv-channel class="description">
+    <p>${this.activeItem.timecode}</p>
+    <h2>${this.activeItem.title}</h2>
+    <h3>${this.activeItem.presenter}</h3>
+    <p>${this.activeItem.description}</p>
+  </tv-channel>
+  </div>
+    
+  <!-- dialog -->
+  <sl-dialog class="dialog">
+    <p>${this.nextItem.timecode}</p>
+    <h2>${this.nextItem.title}</h2>
+    <h3>${this.nextItem.presenter}</h3>
+    <p>${this.nextItem.description}</p>
+    <sl-button slot="footer" variant="primary" @click="${this.watchVideo}">WATCH</sl-button>
+  </sl-dialog>
     `;
   }
 
   changeVideo() {
-    const iframe = this.shadowRoot.querySelector('iframe');
-    iframe.src = this.createSource();
+    const videoPlayer = this.shadowRoot.querySelector('video-player');
+    videoPlayer.source = this.createSource();
+    this.shadowRoot.querySelector('video-player').shadowRoot.querySelector('a11y-media-player').play()
   }
+  
   extractVideoId(link) {
     try {
       const url = new URL(link);
@@ -184,25 +215,31 @@ export class TvApp extends LitElement {
       return null;
     }
   }
+
   createSource() {
-    return "https://www.youtube.com/embed/" + this.extractVideoId(this.activeItem.video);
-    
+    return this.activeItem.video
+      ? `https://www.youtube.com/embed/${this.extractVideoId(this.activeItem.video)}`
+      : this.defaultVideo;
   }
 
-  closeDialog(e) {
+  watchVideo(e)
+  {
     const dialog = this.shadowRoot.querySelector('.dialog');
     dialog.hide();
+    this.activeItem = this.nextItem;
+    this.shadowRoot.querySelector('video-player').shadowRoot.querySelector('a11y-media-player').play();
   }
 
   itemClick(e) {
     console.log(e.target);
-    this.activeItem = {
+    this.nextItem = {
       title: e.target.title,
       id: e.target.id,
       description: e.target.description,
       video: e.target.video,
+      presenter: e.target.presenter,
+      timecode: e.target.timecode,
     };
-    this.changeVideo(); // Call changeVideo 
     const dialog = this.shadowRoot.querySelector('.dialog');
     dialog.show();
   }
