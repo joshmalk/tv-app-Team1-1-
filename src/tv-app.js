@@ -70,10 +70,16 @@ export class TvApp extends LitElement {
         display: inline-flex;
       }
 
-.main-content {
+      .main-content {
           display: flex;
           flex-direction: row;
           margin: 12px;
+        }
+
+        .watch-button {
+          background-color: #f14668;
+          border-color: transparent;
+          color: #fff;
         }
  
         .player-container {
@@ -137,6 +143,7 @@ export class TvApp extends LitElement {
           frameborder="0"
           allowfullscreen>
         </iframe>
+        
        
        
       </div>
@@ -146,13 +153,20 @@ export class TvApp extends LitElement {
           <script src="https://cdn.jsdelivr.net/npm/@widgetbot/html-embed"></script>
         </div>
       </div>
+      <div>
+        <tv-channel title=${this.activeItem.title} presenter=${this.activeItem.author}>
+    <p id="description">
+    ${this.activeItem.description}
+    </p>
+  </tv-channel>
+    </div>
       <sl-dialog label="${this.activeItem.title}" class="dialog">
       <p>
       ${this.activeItem.description}
     </p>
         <sl-button slot="footer" variant="primary" @click="${this.closeDialog}">Close</sl-button>
+        <button class="watch-button" slot="footer">WATCH</button>
       </sl-dialog>
-    <
     `;
   }
 
@@ -172,6 +186,7 @@ export class TvApp extends LitElement {
   }
   createSource() {
     return "https://www.youtube.com/embed/" + this.extractVideoId(this.activeItem.video);
+    
   }
 
   closeDialog(e) {
